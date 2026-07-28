@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { ScoreConfig, ScoreData } from '../types/index.js';
 import { generateMelodyScore } from '../engine/melodyEngine.js';
 import { validateScoreConfig, type ValidationResult } from '../engine/validator.js';
@@ -102,6 +102,22 @@ export function useScoreGenerator(initialConfig = DEFAULT_CONFIG) {
     },
     [config]
   );
+
+  // Autogenerar partitura automáticamente cuando cambia la configuración
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      const currentValidation = validateScoreConfig(config);
+      if (currentValidation.isValid) {
+        generateScore();
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [config, generateScore]);
 
   // Generar enlace compartible por hash (base64 de config + semilla)
   const generateShareLink = useCallback(() => {

@@ -1,5 +1,5 @@
-import html2canvas from 'html2canvas';
 import type { ScoreData } from '../types/index.js';
+import { getVexFlowCanvasImage } from './svgToCanvas.js';
 
 export async function exportToPng(score: ScoreData): Promise<void> {
   const container = document.getElementById('vexflow-canvas-export');
@@ -9,14 +9,8 @@ export async function exportToPng(score: ScoreData): Promise<void> {
   }
 
   try {
-    const canvas = await html2canvas(container, {
-      backgroundColor: '#fcfbf7',
-      scale: 2, // 2x alta resolución
-      logging: false,
-      useCORS: true,
-    });
+    const { dataUrl } = await getVexFlowCanvasImage(container, 2);
 
-    const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.href = dataUrl;
     const safeTitle = score.title.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -26,6 +20,6 @@ export async function exportToPng(score: ScoreData): Promise<void> {
     document.body.removeChild(link);
   } catch (err) {
     console.error('Error al exportar PNG:', err);
-    alert('Ocurrió un error al generar la imagen PNG.');
+    alert('Ocurrió un error al generar la imagen PNG con todos los símbolos musicales.');
   }
 }

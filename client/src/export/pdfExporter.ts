@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { ScoreData } from '../types/index.js';
+import { getVexFlowCanvasImage } from './svgToCanvas.js';
 
 export async function exportToPdf(score: ScoreData): Promise<void> {
   const container = document.getElementById('vexflow-canvas-export');
@@ -10,13 +10,8 @@ export async function exportToPdf(score: ScoreData): Promise<void> {
   }
 
   try {
-    const canvas = await html2canvas(container, {
-      backgroundColor: '#fcfbf7',
-      scale: 2,
-      logging: false,
-    });
+    const { dataUrl, width: canvasWidth, height: canvasHeight } = await getVexFlowCanvasImage(container, 2);
 
-    const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -42,19 +37,19 @@ export async function exportToPdf(score: ScoreData): Promise<void> {
 
     pdf.text(`Semilla determinista: ${score.seed} — Cadenza Studio AI`, 20, 32);
 
-    // Calcular proporción de imagen
+    // Calcular proporción de imagen super nítida con todos los símbolos musicales
     const imgWidth = pageWidth - 40;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgHeight = (canvasHeight * imgWidth) / canvasWidth;
 
     const yPosition = 40;
 
-    if (imgHeight > pageHeight - 50) {
+    if (imgHeight > pageHeight - 55) {
       // Ajustar si la partitura es muy alta
       const adjustedHeight = pageHeight - 55;
-      const adjustedWidth = (canvas.width * adjustedHeight) / canvas.height;
-      pdf.addImage(imgData, 'PNG', 20, yPosition, adjustedWidth, adjustedHeight);
+      const adjustedWidth = (canvasWidth * adjustedHeight) / canvasHeight;
+      pdf.addImage(dataUrl, 'PNG', 20, yPosition, adjustedWidth, adjustedHeight);
     } else {
-      pdf.addImage(imgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+      pdf.addImage(dataUrl, 'PNG', 20, yPosition, imgWidth, imgHeight);
     }
 
     // Pie de página pedagógico
@@ -71,6 +66,6 @@ export async function exportToPdf(score: ScoreData): Promise<void> {
     pdf.save(`${safeTitle || 'partitura'}_cadenza.pdf`);
   } catch (err) {
     console.error('Error al generar PDF:', err);
-    alert('Ocurrió un error al generar el archivo PDF.');
+    alert('Ocurrió un error al generar el archivo PDF con la partitura musical.');
   }
 }
