@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { ScoreConfig, ScoreData } from '../types/index.js';
 import { generateMelodyScore } from '../engine/melodyEngine.js';
 import { validateScoreConfig, type ValidationResult } from '../engine/validator.js';
+import { storageService } from '../services/storageService.js';
 
 const DEFAULT_CONFIG: ScoreConfig = {
   clef: 'treble',
@@ -73,9 +74,12 @@ export function useScoreGenerator(initialConfig = DEFAULT_CONFIG) {
         const newScore = generateMelodyScore(config, customSeed);
         setScore(newScore);
 
-        // Guardar automáticamente en el historial de SQLite a través del backend
+        // 1. Guardar automáticamente en almacenamiento local offline (localStorage)
+        storageService.saveScore(newScore);
+
+        // 2. Opcional: intentar guardar en servidor REST/SQLite si está activo
         try {
-          await fetch('http://localhost:3001/api/scores', {
+          fetch('http://localhost:3001/api/scores', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -85,10 +89,8 @@ export function useScoreGenerator(initialConfig = DEFAULT_CONFIG) {
               config: newScore.config,
               notes: newScore.measures,
             }),
-          });
-        } catch (err) {
-          console.warn('Backend SQLite no disponible para historial automático:', err);
-        }
+          }).catch(() => {});
+        } catch (_) {}
 
         return newScore;
       } catch (err: any) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { ScoreConfig } from '../../types/index.js';
 import { PlusCircle, Check } from 'lucide-react';
+import { storageService } from '../../services/storageService.js';
 
 interface PresetsTabProps {
   currentConfig: ScoreConfig;
@@ -16,13 +17,19 @@ export const PresetsTab: React.FC<PresetsTabProps> = ({ currentConfig, onSelectP
   const fetchPresets = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/presets');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        setPresets(data.data);
-      }
-    } catch (err) {
-      console.warn('No se pudieron cargar presets del servidor SQLite:', err);
+      // 1. Carga inmediata sin servidor de los presets del conservatorio y del usuario
+      const localPresets = storageService.getPresets();
+      setPresets(localPresets);
+
+      // 2. Intentar combinar con servidor REST si estuviera activo
+      fetch('http://localhost:3001/api/presets')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            setPresets(data.data);
+          }
+        })
+        .catch(() => {});
     } finally {
       setLoading(false);
     }
@@ -36,26 +43,24 @@ export const PresetsTab: React.FC<PresetsTabProps> = ({ currentConfig, onSelectP
     e.preventDefault();
     if (!newPresetName.trim()) return;
 
-    try {
-      const id = `user-preset-${Date.now()}`;
-      await fetch('http://localhost:3001/api/presets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          name: newPresetName.trim(),
-          description: 'Preset personalizado por usuario',
-          category: 'Mis Presets',
-          config: currentConfig,
-        }),
-      });
-      setNewPresetName('');
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
-      fetchPresets();
-    } catch (err) {
-      console.error('Error al guardar preset:', err);
-    }
+    const updated = storageService.saveCustomPreset(newPresetName, currentConfig);
+    setPresets(updated);
+    setNewPresetName('');
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+
+    // Opcional: sincronizar con servidor si existe
+    fetch('http://localhost:3001/api/presets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: `user-preset-${Date.now()}`,
+        name: newPresetName.trim(),
+        description: 'Preset personalizado por usuario',
+        category: 'Mis Presets',
+        config: currentConfig,
+      }),
+    }).catch(() => {});
   };
 
   return (

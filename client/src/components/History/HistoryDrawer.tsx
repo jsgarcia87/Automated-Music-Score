@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Star, Trash2, RefreshCw, Edit3, Music, Clock } from 'lucide-react';
 import type { ScoreData } from '../../types/index.js';
+import { storageService } from '../../services/storageService.js';
 
 interface HistoryDrawerProps {
   isOpen: boolean;
@@ -22,13 +23,19 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/scores');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        setScores(data.data);
-      }
-    } catch (err) {
-      console.warn('Backend SQLite no disponible para cargar historial:', err);
+      // 1. Carga inmediata y offline-ready desde localStorage
+      const localHistory = storageService.getHistory();
+      setScores(localHistory);
+
+      // 2. Intentar actualizar desde servidor si está disponible
+      fetch('http://localhost:3001/api/scores')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            setScores(data.data);
+          }
+        })
+        .catch(() => {});
     } finally {
       setLoading(false);
     }
@@ -41,23 +48,15 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   }, [isOpen]);
 
   const toggleFavorite = async (id: string) => {
-    try {
-      await fetch(`http://localhost:3001/api/scores/${id}/favorite`, { method: 'PUT' });
-      setScores((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, is_favorite: !s.is_favorite } : s))
-      );
-    } catch (err) {
-      console.error('Error al actualizar favorito:', err);
-    }
+    const updated = storageService.toggleFavorite(id);
+    setScores(updated);
+    fetch(`http://localhost:3001/api/scores/${id}/favorite`, { method: 'PUT' }).catch(() => {});
   };
 
   const deleteScore = async (id: string) => {
-    try {
-      await fetch(`http://localhost:3001/api/scores/${id}`, { method: 'DELETE' });
-      setScores((prev) => prev.filter((s) => s.id !== id));
-    } catch (err) {
-      console.error('Error al eliminar partitura:', err);
-    }
+    const updated = storageService.deleteScore(id);
+    setScores(updated);
+    fetch(`http://localhost:3001/api/scores/${id}`, { method: 'DELETE' }).catch(() => {});
   };
 
   if (!isOpen) return null;
