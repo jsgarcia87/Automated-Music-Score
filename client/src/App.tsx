@@ -1,0 +1,245 @@
+import { useEffect, useState, useCallback } from 'react';
+import { useScoreGenerator } from './hooks/useScoreGenerator.js';
+import { useUndoRedo } from './hooks/useUndoRedo.js';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
+import { soundEngine } from './audio/soundEngine.js';
+import { Navbar } from './components/Layout/Navbar.js';
+import { Sidebar } from './components/Controls/Sidebar.js';
+import { PlayerToolbar } from './components/Player/PlayerToolbar.js';
+import { VexScoreCanvas } from './components/Score/VexScoreCanvas.js';
+import { DictationOverlay } from './components/Score/DictationOverlay.js';
+import { HistoryDrawer } from './components/History/HistoryDrawer.js';
+import { GenerateButton } from './components/FAB/GenerateButton.js';
+import { ShortcutsModal } from './components/Layout/ShortcutsModal.js';
+import type { ScoreConfig } from './types/index.js';
+import { AlertCircle, Sparkles } from 'lucide-react';
+
+export default function App() {
+  const {
+    config,
+    setConfig,
+    score,
+    setScore,
+    validation,
+    isGenerating,
+    generateScore,
+    lockedParams,
+    toggleLockParam,
+    generateShareLink,
+  } = useScoreGenerator();
+
+  const { state: undoState, set: setUndoState, undo, redo, canUndo, canRedo } = useUndoRedo<ScoreConfig>(config);
+
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [paperMode] = useState<boolean>(true);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+  const [metronome, setMetronome] = useState<boolean>(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+
+  // Sincronizar estado con el hook UndoRedo
+  const handleConfigChange = useCallback(
+    (newPartial: Partial<ScoreConfig>) => {
+      setUndoState((prev) => {
+        const next = { ...prev, ...newPartial };
+        setConfig(next);
+        return next;
+      });
+    },
+    [setUndoState, setConfig]
+  );
+
+  // Generar melodía por defecto al montar para impactar desde el primer segundo
+  useEffect(() => {
+    generateScore();
+  }, []);
+
+  // Sincronizar modo oscuro en la raíz HTML
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  // Controles de Audio
+  const handlePlay = useCallback(async () => {
+    if (!score) return;
+    setIsPlaying(true);
+    await soundEngine.play(
+      score,
+      (noteId) => {
+        setActiveNoteId(noteId);
+      },
+      () => {
+        setIsPlaying(false);
+        setActiveNoteId(null);
+      }
+    );
+  }, [score]);
+
+  const handlePause = useCallback(() => {
+    soundEngine.pause();
+    setIsPlaying(false);
+    setActiveNoteId(null);
+  }, []);
+
+  const handleStop = useCallback(() => {
+    soundEngine.stop();
+    setIsPlaying(false);
+    setActiveNoteId(null);
+  }, []);
+
+  const handleSpeedChange = useCallback((newSpeed: number) => {
+    setPlaybackSpeed(newSpeed);
+    soundEngine.setSpeed(newSpeed);
+  }, []);
+
+  const handleMetronomeToggle = useCallback(() => {
+    const nextVal = !metronome;
+    setMetronome(nextVal);
+    soundEngine.toggleMetronome(nextVal);
+  }, [metronome]);
+
+  // Atajos de teclado completos
+  useKeyboardShortcuts({
+    onPlayPause: () => {
+      if (isPlaying) handlePause();
+      else handlePlay();
+    },
+    onGenerate: () => {
+      handleStop();
+      generateScore();
+    },
+    onToggleMetronome: handleMetronomeToggle,
+    onUndo: () => {
+      if (canUndo) {
+        undo();
+        setConfig(undoState);
+      }
+    },
+    onRedo: () => {
+      if (canRedo) {
+        redo();
+        setConfig(undoState);
+      }
+    },
+  });
+
+  return (
+    <div className={`min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300`}>
+      {/* Barra de Navegación Superior */}
+      <Navbar
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode((d) => !d)}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        onOpenShortcutsModal={() => setIsShortcutsOpen(true)}
+        isPedagogyActive={config.pedagogy.mode !== 'standard'}
+      />
+
+      {/* Contenedor Principal con Sidebar y Workspace de Partitura */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Panel Izquierdo Colapsable (Inspirado en Notion/Figma) */}
+        <Sidebar
+          config={config}
+          onChange={handleConfigChange}
+          onSelectPreset={(presetConfig) => {
+            handleConfigChange(presetConfig);
+            setTimeout(() => generateScore(), 100);
+          }}
+          lockedParams={lockedParams}
+          onToggleLock={toggleLockParam}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+        />
+
+        {/* Área Central Principal */}
+        <main className="flex-1 flex flex-col overflow-y-auto p-6 space-y-6">
+          {/* Avisos o Errores de Validación */}
+          {!validation.isValid && (
+            <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900 text-red-800 dark:text-red-200 text-sm font-medium">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+              <div>
+                <span>Configuración imposible: </span>
+                <span className="font-semibold">{validation.errors.join(' ')}</span>
+              </div>
+            </div>
+          )}
+
+          {validation.warnings.length > 0 && validation.isValid && (
+            <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-200 text-xs font-medium">
+              <Sparkles className="w-4 h-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>{validation.warnings.join(' ')}</span>
+            </div>
+          )}
+
+          {/* Controles de Reproducción y Exportación */}
+          <PlayerToolbar
+            score={score}
+            isPlaying={isPlaying}
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onStop={handleStop}
+            speed={playbackSpeed}
+            onSpeedChange={handleSpeedChange}
+            metronome={metronome}
+            onMetronomeToggle={handleMetronomeToggle}
+          />
+
+          {/* Contenedor de la Partitura (Soporta Modo Estándar, Papel y Dictado Melódico) */}
+          <div className="flex-1 flex flex-col items-center">
+            <DictationOverlay
+              isDictationMode={config.pedagogy.mode === 'dictation'}
+              onPlayScore={handlePlay}
+            >
+              <VexScoreCanvas
+                score={score}
+                activeNoteId={activeNoteId}
+                darkMode={darkMode}
+                paperMode={paperMode}
+                onShareLink={generateShareLink}
+              />
+            </DictationOverlay>
+          </div>
+        </main>
+      </div>
+
+      {/* Botón Flotante de Generación Rápida "🎲 Generar nueva melodía" */}
+      <GenerateButton
+        onGenerate={() => {
+          handleStop();
+          generateScore();
+        }}
+        isGenerating={isGenerating}
+      />
+
+      {/* Cajón de Historial de Partituras en SQLite */}
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onLoadScore={(loadedScore) => {
+          handleStop();
+          setScore(loadedScore);
+          setConfig(loadedScore.config);
+        }}
+        onRegenerateWithSeed={(presetConfig, seed) => {
+          handleStop();
+          setConfig(presetConfig);
+          generateScore(seed);
+        }}
+      />
+
+      {/* Modal de Atajos de Teclado */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
+    </div>
+  );
+}
