@@ -41,22 +41,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRedo,
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('musical');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+  });
 
   return (
-    <aside
-      className={`relative flex flex-col bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 transition-all duration-300 z-20 ${
-        isCollapsed ? 'w-16' : 'w-80 lg:w-96'
-      }`}
-    >
-      {/* Botón de Colapsar / Expandir (Estilo Notion/Figma) */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-5 w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors z-30"
-        title={isCollapsed ? 'Expandir panel' : 'Colapsar panel'}
+    <>
+      {/* Overlay de fondo en móvil cuando el panel está abierto */}
+      {!isCollapsed && (
+        <div
+          onClick={() => setIsCollapsed(true)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-20 md:hidden"
+        />
+      )}
+
+      <aside
+        className={`flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 transition-all duration-300 z-30 ${
+          isCollapsed
+            ? 'w-14 sm:w-16 relative'
+            : 'fixed md:relative inset-y-0 left-0 w-80 lg:w-96 shadow-2xl md:shadow-none h-full'
+        }`}
       >
-        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+        {/* Botón de Colapsar / Expandir (Estilo Notion/Figma) */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute -right-3.5 top-5 w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors z-40"
+          title={isCollapsed ? 'Expandir panel' : 'Colapsar panel'}
+        >
+          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
 
       {/* Cabecera del Sidebar con Deshacer / Rehacer */}
       <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 dark:border-slate-800">
@@ -142,5 +155,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
     </aside>
+    </>
   );
 };

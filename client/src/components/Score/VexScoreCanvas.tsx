@@ -33,15 +33,15 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
     container.innerHTML = '';
     noteElementsMapRef.current = {};
 
-    const containerWidth = Math.max(container.clientWidth || 800, 600);
+    const containerWidth = Math.max(container.clientWidth || 800, 310);
     const scale = zoom;
-    const measuresPerSystem = containerWidth > 900 ? 4 : containerWidth > 650 ? 3 : 2;
+    const measuresPerSystem = containerWidth > 900 ? 4 : containerWidth > 620 ? 3 : containerWidth > 420 ? 2 : 1;
 
     const renderer = new Renderer(container, Renderer.Backends.SVG);
     const systemsCount = Math.ceil(score.measures.length / measuresPerSystem);
     const systemHeight = 160;
-    const canvasWidth = (containerWidth - 40) * scale;
-    const canvasHeight = Math.max(systemsCount * systemHeight + 100, 300) * scale;
+    const canvasWidth = Math.max((containerWidth - 20) * scale, 300);
+    const canvasHeight = Math.max(systemsCount * systemHeight + 100, 260) * scale;
 
     renderer.resize(canvasWidth, canvasHeight);
     const context = renderer.getContext();
@@ -282,7 +282,7 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
 
       {/* Contenedor del Lienzo de Partitura (Estilo Papel Musical Premium o Modo Oscuro) */}
       <div
-        className={`w-full overflow-x-auto p-8 flex justify-center transition-colors duration-300 ${
+        className={`w-full overflow-x-auto p-2 sm:p-6 md:p-8 flex justify-center transition-colors duration-300 ${
           paperMode
             ? 'bg-[#fcfbf7] text-slate-900 shadow-inner'
             : darkMode
