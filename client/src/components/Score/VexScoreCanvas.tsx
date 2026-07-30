@@ -6,6 +6,8 @@ import { ZoomIn, ZoomOut, Maximize2, FileText, Share2, Check } from 'lucide-reac
 interface VexScoreCanvasProps {
   score: ScoreData | null;
   activeNoteId?: string | null;
+  selectedNoteId?: string | null;
+  onSelectNote?: (noteId: string, measureIndex: number, noteIndex: number) => void;
   darkMode?: boolean;
   paperMode?: boolean;
   onShareLink?: () => void;
@@ -16,6 +18,8 @@ const { Renderer, Stave, StaveNote, Accidental, Formatter, Articulation, StaveTi
 export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
   score,
   activeNoteId,
+  selectedNoteId,
+  onSelectNote,
   darkMode = false,
   paperMode = true,
   onShareLink,
@@ -161,6 +165,14 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
           const el = sNote?.getAttribute('el') || sNote?.getSVGElement?.();
           if (el) {
             noteElementsMapRef.current[ev.id] = el;
+            if (onSelectNote) {
+              const svgEl = el as HTMLElement;
+              svgEl.style.cursor = 'pointer';
+              svgEl.onclick = (e) => {
+                e.stopPropagation();
+                onSelectNote(ev.id, idx, nIdx);
+              };
+            }
           }
         });
       }
@@ -178,11 +190,12 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
       });
       staveTie.setContext(context).draw();
     });
-  }, [score, zoom, darkMode, paperMode]);
+  }, [score, zoom, darkMode, paperMode, onSelectNote]);
 
-  // Resaltado visual en tiempo real de la nota que está sonando
+  // Resaltado visual en tiempo real de la nota que está sonando o seleccionada
   useEffect(() => {
-    const activeColor = '#6366f1'; // Índigo neón
+    const activeColor = '#6366f1'; // Índigo neón (reproduciendo)
+    const selectedColor = '#f59e0b'; // Ámbar brillante (seleccionada para editar)
     const normalColor = darkMode && !paperMode ? '#e2e8f0' : '#1e293b';
 
     Object.entries(noteElementsMapRef.current).forEach(([id, element]) => {
@@ -193,13 +206,18 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
         svgEl.style.stroke = activeColor;
         svgEl.style.transition = 'all 0.1s ease';
         svgEl.style.filter = 'drop-shadow(0 0 4px rgba(99, 102, 241, 0.6))';
+      } else if (id === selectedNoteId) {
+        svgEl.style.fill = selectedColor;
+        svgEl.style.stroke = selectedColor;
+        svgEl.style.transition = 'all 0.15s ease';
+        svgEl.style.filter = 'drop-shadow(0 0 6px rgba(245, 158, 11, 0.85))';
       } else {
         svgEl.style.fill = normalColor;
         svgEl.style.stroke = normalColor;
         svgEl.style.filter = 'none';
       }
     });
-  }, [activeNoteId, darkMode, paperMode]);
+  }, [activeNoteId, selectedNoteId, darkMode, paperMode]);
 
   const handleShare = () => {
     if (onShareLink) {

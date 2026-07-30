@@ -10,7 +10,7 @@ export interface RhythmToken {
 }
 
 // Duración en tiempos de negra (quarter note = 1.0)
-const FIGURE_BEATS: Record<RhythmFigure, number> = {
+export const FIGURE_BEATS: Record<RhythmFigure, number> = {
   'whole': 4.0,
   'dotted-half': 3.0,
   'half': 2.0,
@@ -22,7 +22,7 @@ const FIGURE_BEATS: Record<RhythmFigure, number> = {
   'rest': 1.0,
 };
 
-const FIGURE_VEX: Record<RhythmFigure, string> = {
+export const FIGURE_VEX: Record<RhythmFigure, string> = {
   'whole': 'w',
   'dotted-half': 'hd',
   'half': 'h',
@@ -33,6 +33,17 @@ const FIGURE_VEX: Record<RhythmFigure, string> = {
   'triplet': '8', // En VexFlow un tresillo de corcheas se dibuja con duraciones '8' y un tuplet
   'rest': 'qr',
 };
+
+export function getNoteFigureDetails(figure: RhythmFigure, isRest: boolean) {
+  const beats = FIGURE_BEATS[figure] ?? 1.0;
+  let vexDuration = FIGURE_VEX[figure] ?? 'q';
+  if (isRest && !vexDuration.endsWith('r')) {
+    vexDuration = `${vexDuration}r`;
+  } else if (!isRest && vexDuration.endsWith('r')) {
+    vexDuration = vexDuration.replace('r', '');
+  }
+  return { beats, vexDuration };
+}
 
 // Capacidad total de tiempos en negra por compás
 export function getMeasureTotalBeats(timeSignature: TimeSignature): number {

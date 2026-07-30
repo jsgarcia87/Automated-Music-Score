@@ -11,6 +11,7 @@ import { DictationOverlay } from './components/Score/DictationOverlay.js';
 import { HistoryDrawer } from './components/History/HistoryDrawer.js';
 import { GenerateButton } from './components/FAB/GenerateButton.js';
 import { ShortcutsModal } from './components/Layout/ShortcutsModal.js';
+import { ComposerStudio } from './components/Score/ComposerStudio.js';
 import type { ScoreConfig } from './types/index.js';
 import { AlertCircle, Sparkles } from 'lucide-react';
 
@@ -26,6 +27,15 @@ export default function App() {
     lockedParams,
     toggleLockParam,
     generateShareLink,
+    isComposerMode,
+    setIsComposerMode,
+    createEmptyScore,
+    addNoteToMeasure,
+    updateNoteInScore,
+    deleteNoteFromScore,
+    addMeasureToScore,
+    removeLastMeasureFromScore,
+    clearMeasureNotes,
   } = useScoreGenerator();
 
   const { state: undoState, set: setUndoState, undo, redo, canUndo, canRedo } = useUndoRedo<ScoreConfig>(config);
@@ -34,6 +44,8 @@ export default function App() {
   const [paperMode] = useState<boolean>(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [activeMeasureIndex, setActiveMeasureIndex] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [metronome, setMetronome] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
@@ -139,6 +151,7 @@ export default function App() {
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenShortcutsModal={() => setIsShortcutsOpen(true)}
         isPedagogyActive={config.pedagogy.mode !== 'standard'}
+        isComposerMode={isComposerMode}
       />
 
       {/* Contenedor Principal con Sidebar y Workspace de Partitura */}
@@ -179,6 +192,40 @@ export default function App() {
             </div>
           )}
 
+          {/* Selector de Modo Principal: Generación Automática vs Composición Manual */}
+          <div className="flex flex-wrap items-center justify-between bg-white dark:bg-slate-900 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsComposerMode(false)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  !isComposerMode
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span>🎲</span> Generador Automático
+              </button>
+              <button
+                onClick={() => {
+                  setIsComposerMode(true);
+                  if (!score) createEmptyScore();
+                }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  isComposerMode
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span>✏️</span> Modo Composición &amp; Edición
+              </button>
+            </div>
+            {isComposerMode && (
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                Haz clic en una nota de la partitura o toca el piano para crear y editar música
+              </span>
+            )}
+          </div>
+
           {/* Controles de Reproducción y Exportación */}
           <PlayerToolbar
             score={score}
@@ -201,23 +248,58 @@ export default function App() {
               <VexScoreCanvas
                 score={score}
                 activeNoteId={activeNoteId}
+                selectedNoteId={selectedNoteId}
+                onSelectNote={(noteId, mIdx) => {
+                  setSelectedNoteId(noteId);
+                  setActiveMeasureIndex(mIdx);
+                }}
                 darkMode={darkMode}
                 paperMode={paperMode}
                 onShareLink={generateShareLink}
               />
             </DictationOverlay>
+
+            {isComposerMode && (
+              <div className="w-full mt-4 flex justify-center">
+                <ComposerStudio
+                  score={score}
+                  selectedNoteId={selectedNoteId}
+                  activeMeasureIndex={activeMeasureIndex}
+                  onSelectMeasure={setActiveMeasureIndex}
+                  onAddNote={(mIdx, pitch, fig, opts) => {
+                    const newId = addNoteToMeasure(mIdx, pitch, fig, opts);
+                    setSelectedNoteId(newId);
+                  }}
+                  onUpdateNote={updateNoteInScore}
+                  onDeleteNote={(id) => {
+                    deleteNoteFromScore(id);
+                    if (selectedNoteId === id) setSelectedNoteId(null);
+                  }}
+                  onAddMeasure={addMeasureToScore}
+                  onRemoveLastMeasure={removeLastMeasureFromScore}
+                  onClearMeasure={clearMeasureNotes}
+                  onCreateEmptyScore={() => {
+                    createEmptyScore();
+                    setSelectedNoteId(null);
+                    setActiveMeasureIndex(0);
+                  }}
+                />
+              </div>
+            )}
           </div>
         </main>
       </div>
 
-      {/* Botón Flotante de Generación Rápida "🎲 Generar nueva melodía" */}
-      <GenerateButton
-        onGenerate={() => {
-          handleStop();
-          generateScore();
-        }}
-        isGenerating={isGenerating}
-      />
+      {/* Botón Flotante de Generación Rápida "🎲 Generar nueva melodía" (solo visible si no estamos componendo) */}
+      {!isComposerMode && (
+        <GenerateButton
+          onGenerate={() => {
+            handleStop();
+            generateScore();
+          }}
+          isGenerating={isGenerating}
+        />
+      )}
 
       {/* Cajón de Historial de Partituras en SQLite */}
       <HistoryDrawer

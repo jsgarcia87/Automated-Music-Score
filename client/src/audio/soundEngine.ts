@@ -130,6 +130,17 @@ export class CadenzaSoundEngine {
     this.clearTimers();
   }
 
+  public async playNote(pitch: string, durationSecs = 0.4): Promise<void> {
+    if (!pitch || pitch === 'rest') return;
+    await this.initAudio();
+    if (!this.synth) return;
+    try {
+      this.synth.triggerAttackRelease(pitch, durationSecs, Tone.now(), 0.75);
+    } catch (e) {
+      console.warn('Error al reproducir nota individual:', e);
+    }
+  }
+
   private clearTimers(): void {
     this.scheduledEvents.forEach((id) => window.clearTimeout(id));
     this.scheduledEvents = [];

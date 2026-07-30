@@ -7,6 +7,7 @@ interface NavbarProps {
   onOpenHistory: () => void;
   onOpenShortcutsModal: () => void;
   isPedagogyActive: boolean;
+  isComposerMode?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -15,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenHistory,
   onOpenShortcutsModal,
   isPedagogyActive,
+  isComposerMode,
 }) => {
   return (
     <header className="sticky top-0 z-30 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
@@ -33,6 +35,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                   <Award className="w-3 h-3" />
                   Modo Ejercicios
+                </span>
+              )}
+              {isComposerMode && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                  ✏️ Partitura Propia
                 </span>
               )}
             </div>
