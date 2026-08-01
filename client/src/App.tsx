@@ -12,6 +12,7 @@ import { HistoryDrawer } from './components/History/HistoryDrawer.js';
 import { GenerateButton } from './components/FAB/GenerateButton.js';
 import { ShortcutsModal } from './components/Layout/ShortcutsModal.js';
 import { ComposerStudio } from './components/Score/ComposerStudio.js';
+import { GestureStudioModal } from './components/Score/GestureStudioModal.js';
 import type { ScoreConfig } from './types/index.js';
 import { AlertCircle, Sparkles } from 'lucide-react';
 
@@ -50,6 +51,7 @@ export default function App() {
   const [metronome, setMetronome] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+  const [isGestureOpen, setIsGestureOpen] = useState<boolean>(false);
 
   // Sincronizar estado con el hook UndoRedo
   const handleConfigChange = useCallback(
@@ -152,6 +154,7 @@ export default function App() {
         onOpenShortcutsModal={() => setIsShortcutsOpen(true)}
         isPedagogyActive={config.pedagogy.mode !== 'standard'}
         isComposerMode={isComposerMode}
+        onOpenGestureModal={() => setIsGestureOpen(true)}
       />
 
       {/* Contenedor Principal con Sidebar y Workspace de Partitura */}
@@ -337,6 +340,21 @@ export default function App() {
       <ShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
+      />
+
+      {/* Modal de Synth & Theremin Gestual (Combinación IA) */}
+      <GestureStudioModal
+        isOpen={isGestureOpen}
+        onClose={() => setIsGestureOpen(false)}
+        currentKey={config.keySignature}
+        onAddNoteFromGesture={(pitch, duration) => {
+          addNoteToMeasure(activeMeasureIndex, pitch, duration);
+        }}
+        isPlaying={isPlaying}
+        onTogglePlay={() => {
+          if (isPlaying) handleStop();
+          else handlePlay();
+        }}
       />
     </div>
   );

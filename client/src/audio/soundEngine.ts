@@ -160,6 +160,62 @@ export class CadenzaSoundEngine {
   public isMetronomeEnabled(): boolean {
     return this.metronomeEnabled;
   }
+
+  private activeThereminPitch: string | null = null;
+
+  public async startThereminNote(pitch: string): Promise<void> {
+    if (!pitch) return;
+    await this.initAudio();
+    if (!this.synth) return;
+    if (this.activeThereminPitch === pitch) return;
+
+    try {
+      if (this.activeThereminPitch) {
+        this.synth.triggerRelease(this.activeThereminPitch, Tone.now());
+      }
+      this.synth.triggerAttack(pitch, Tone.now(), 0.85);
+      this.activeThereminPitch = pitch;
+    } catch (e) {
+      console.warn('Error en startThereminNote:', e);
+    }
+  }
+
+  public stopThereminNote(): void {
+    if (!this.synth || !this.activeThereminPitch) return;
+    try {
+      this.synth.triggerRelease(this.activeThereminPitch, Tone.now());
+      this.activeThereminPitch = null;
+    } catch (e) {
+      console.warn('Error en stopThereminNote:', e);
+    }
+  }
+
+  public async playChord(notes: string[], durationSecs = 0.8): Promise<void> {
+    if (!notes || notes.length === 0) return;
+    await this.initAudio();
+    if (!this.synth) return;
+    try {
+      this.synth.triggerAttackRelease(notes, durationSecs, Tone.now(), 0.7);
+    } catch (e) {
+      console.warn('Error al reproducir acorde:', e);
+    }
+  }
+
+  public setVolume(db: number): void {
+    if (this.synth) {
+      // db en rango recomendable -30 a +2
+      this.synth.volume.value = Math.max(-40, Math.min(6, db));
+    }
+  }
+
+  public setBpmDirect(bpm: number): void {
+    const clamped = Math.max(40, Math.min(220, bpm));
+    Tone.Transport.bpm.value = clamped;
+    if (this.currentScore) {
+      this.speedMultiplier = clamped / (this.currentScore.config.bpm || 96);
+    }
+  }
 }
 
 export const soundEngine = new CadenzaSoundEngine();
+

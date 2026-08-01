@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music, Moon, Sun, History, Keyboard, Award, Sparkles } from 'lucide-react';
+import { Music, Moon, Sun, History, Keyboard, Award, Sparkles, Wand2 } from 'lucide-react';
 
 interface NavbarProps {
   darkMode: boolean;
@@ -8,6 +8,7 @@ interface NavbarProps {
   onOpenShortcutsModal: () => void;
   isPedagogyActive: boolean;
   isComposerMode?: boolean;
+  onOpenGestureModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,33 +18,33 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenShortcutsModal,
   isPedagogyActive,
   isComposerMode,
+  onOpenGestureModal,
 }) => {
   return (
     <header className="sticky top-0 z-30 w-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo y Marca */}
         <div className="flex items-center gap-3.5 group cursor-pointer">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white shadow-md shadow-indigo-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
             <Music className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-indigo-200 dark:to-slate-300 bg-clip-text text-transparent">
-                Cadenza Studio
-              </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 font-mono">
-                Pro
+              <span className="text-base font-black tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+                CADENZA
+              </span>
+              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800/80">
+                STUDIO PRO
               </span>
               {isPedagogyActive && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/80 shadow-sm">
-                  <Award className="w-3.5 h-3.5 text-amber-500" />
+                <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/80 shadow-2xs animate-pulse">
+                  <Award className="w-3 h-3 text-amber-500" />
                   <span>Modo Ejercicios</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 </span>
               )}
               {isComposerMode && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-300/80 dark:border-indigo-800/80 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-spin-slow" />
+                <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-300/80 dark:border-purple-700/80 shadow-2xs">
+                  <Sparkles className="w-3 h-3 text-purple-500" />
                   <span>Estudio Propio</span>
                 </span>
               )}
@@ -56,6 +57,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Acciones del Navbar */}
         <div className="flex items-center gap-2">
+          {onOpenGestureModal && (
+            <button
+              onClick={onOpenGestureModal}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white text-xs font-extrabold transition-all hover:scale-105 active:scale-95 shadow-md shadow-indigo-500/20 border border-white/20 animate-pulse"
+              title="Abrir Synth &amp; Theremin Gestual (Webcam IA)"
+            >
+              <Wand2 className="w-4 h-4 text-pink-200" />
+              <span>✨ Synth Gestual</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenShortcutsModal}
             className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105 active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
@@ -84,4 +96,3 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-
