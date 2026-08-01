@@ -29,8 +29,8 @@ async function loadMediaPipe(): Promise<{ Hands: any; Camera: any }> {
     });
 
   await Promise.all([
-    loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js', 'Hands'),
-    loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js', 'Camera'),
+    loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js', 'Hands'),
+    loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js', 'Camera'),
   ]);
 
   const HandsCtor = (window as any).Hands;
@@ -136,7 +136,7 @@ export const useHandTracking = (): UseHandTrackingReturn => {
       const { Hands: HandsCtor, Camera: CameraCtor } = await loadMediaPipe();
 
       const hands = new HandsCtor({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
       });
 
       hands.setOptions({

@@ -308,6 +308,7 @@ export const GestureStudioModal: React.FC<GestureStudioModalProps> = ({
                 className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 opacity-90"
                 playsInline
                 muted
+                autoPlay
               />
               <canvas
                 ref={canvasRef}
