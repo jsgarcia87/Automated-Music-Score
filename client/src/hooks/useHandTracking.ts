@@ -70,6 +70,7 @@ export const useHandTracking = (): UseHandTrackingReturn => {
 
   const handsRef = useRef<Hands | null>(null);
   const cameraRef = useRef<Camera | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const frameCountRef = useRef(0);
   const lastFpsTimeRef = useRef(Date.now());
 
@@ -132,6 +133,22 @@ export const useHandTracking = (): UseHandTrackingReturn => {
     if (cameraRef.current) return;
     setError(null);
 
+    // 1. Solicitar permisos de cámara INMEDIATAMENTE durante el evento de click
+    // Esto evita que el token de activación del usuario caduque en Safari, Edge y móviles.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 }
+      });
+      streamRef.current = stream;
+      videoElement.srcObject = stream;
+    } catch (permErr: any) {
+      setError(
+        '⚠️ Permiso de cámara denegado por el navegador o sistema. Por favor, haz clic en el icono del candado en la barra de direcciones de tu navegador y permite el acceso a la cámara para este sitio.'
+      );
+      setIsCameraActive(false);
+      return;
+    }
+
     try {
       const { Hands: HandsCtor, Camera: CameraCtor } = await loadMediaPipe();
 
@@ -173,6 +190,10 @@ export const useHandTracking = (): UseHandTrackingReturn => {
   }, [onResults]);
 
   const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
     if (cameraRef.current) {
       cameraRef.current.stop();
       cameraRef.current = null;
