@@ -1,12 +1,47 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Hands, Results } from '@mediapipe/hands';
 import type { Camera } from '@mediapipe/camera_utils';
-import * as mpHands from '@mediapipe/hands';
-import * as mpCamera from '@mediapipe/camera_utils';
 import { gestureSynthService } from '../services/gestureSynthService.js';
 
-const getHandsClass = () => (window as any).Hands || (mpHands as Record<string, any>)['Hands'] || (mpHands as Record<string, any>)['default']?.['Hands'];
-const getCameraClass = () => (window as any).Camera || (mpCamera as Record<string, any>)['Camera'] || (mpCamera as Record<string, any>)['default']?.['Camera'];
+async function loadMediaPipe(): Promise<{ Hands: any; Camera: any }> {
+  if ((window as any).Hands && (window as any).Camera) {
+    return {
+      Hands: (window as any).Hands,
+      Camera: (window as any).Camera,
+    };
+  }
+
+  const loadScript = (url: string, globalName: string) =>
+    new Promise<void>((resolve, reject) => {
+      if ((window as any)[globalName]) return resolve();
+      const existing = document.querySelector(`script[src="${url}"]`);
+      if (existing) {
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject(new Error(`Failed to load ${globalName}`)));
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = url;
+      script.crossOrigin = 'anonymous';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+      document.head.appendChild(script);
+    });
+
+  await Promise.all([
+    loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js', 'Hands'),
+    loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js', 'Camera'),
+  ]);
+
+  const HandsCtor = (window as any).Hands;
+  const CameraCtor = (window as any).Camera;
+
+  if (!HandsCtor || !CameraCtor) {
+    throw new Error('MediaPipe no se pudo inicializar en el navegador.');
+  }
+
+  return { Hands: HandsCtor, Camera: CameraCtor };
+}
 
 export interface HandGestureState {
   x: number; // 0 (left) - 1 (right)
@@ -93,12 +128,13 @@ export const useHandTracking = (): UseHandTrackingReturn => {
     setLeftHand(nextLeft);
   }, []);
 
-  const startCamera = useCallback((videoElement: HTMLVideoElement) => {
+  const startCamera = useCallback(async (videoElement: HTMLVideoElement) => {
     if (cameraRef.current) return;
     setError(null);
 
     try {
-      const HandsCtor = getHandsClass();
+      const { Hands: HandsCtor, Camera: CameraCtor } = await loadMediaPipe();
+
       const hands = new HandsCtor({
         locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
       });
@@ -113,7 +149,6 @@ export const useHandTracking = (): UseHandTrackingReturn => {
       hands.onResults(onResults);
       handsRef.current = hands;
 
-      const CameraCtor = getCameraClass();
       const camera = new CameraCtor(videoElement, {
         onFrame: async () => {
           if (handsRef.current && videoElement.readyState >= 2) {
