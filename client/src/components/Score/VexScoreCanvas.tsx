@@ -242,44 +242,59 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className={`flex flex-col w-full rounded-3xl overflow-hidden transition-all duration-300 shadow-xl ${
+      paperMode ? 'editorial-frame bg-[#fefdf9]' : 'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90'
+    }`}>
       {/* Cabecera de la Partitura (Título, Opus, Semilla y Botones de acción) */}
-      <div className="flex flex-wrap items-center justify-between px-6 py-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur border-b border-slate-200 dark:border-slate-700 rounded-t-2xl">
+      <div className={`flex flex-wrap items-center justify-between px-6 py-4.5 border-b transition-colors ${
+        paperMode
+          ? 'bg-[#fefdf9]/90 border-[#e3dfd3] text-slate-900'
+          : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur border-slate-200 dark:border-slate-700'
+      }`}>
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            {score.title}
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-              Seed: {score.seed}
+          <div className="flex items-center gap-2">
+            {paperMode && (
+              <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300/60 font-mono">
+                Urtext Ed.
+              </span>
+            )}
+            <h2 className={`text-2xl font-bold tracking-tight ${
+              paperMode ? 'font-serif text-slate-900' : 'text-slate-900 dark:text-white'
+            }`}>
+              {score.title}
+            </h2>
+            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+              Seed: #{score.seed}
             </span>
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          </div>
+          <p className={`text-xs mt-1 font-medium ${paperMode ? 'text-slate-600 font-serif' : 'text-slate-500 dark:text-slate-400'}`}>
             Clave de {score.config.clef === 'treble' ? 'Sol' : score.config.clef === 'bass' ? 'Fa' : 'Do'} • Compás {score.config.timeSignature} • {score.config.bpm} BPM • {score.config.numMeasures} compases
           </p>
         </div>
 
         {/* Barra de Herramientas del Lienzo (Zoom + Compartir enlace) */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200/80 dark:border-slate-700">
             <button
               onClick={() => setZoom((z) => Math.max(0.7, z - 0.15))}
-              className="p-1.5 hover:bg-white dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors"
               title="Reducir zoom"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="px-2 text-xs font-medium text-slate-700 dark:text-slate-300 font-mono">
+            <span className="px-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 font-mono">
               {Math.round(zoom * 100)}%
             </span>
             <button
               onClick={() => setZoom((z) => Math.min(1.6, z + 0.15))}
-              className="p-1.5 hover:bg-white dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors"
               title="Aumentar zoom"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={() => setZoom(1.0)}
-              className="p-1.5 hover:bg-white dark:hover:bg-slate-600 rounded text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors"
               title="Tamaño original"
             >
               <Maximize2 className="w-4 h-4" />
@@ -289,9 +304,9 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
           {onShareLink && (
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-all shadow-sm hover:scale-105 active:scale-95"
             >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Share2 className="w-3.5 h-3.5" />}
+              {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Share2 className="w-4 h-4" />}
               {copiedLink ? '¡Enlace copiado!' : 'Compartir'}
             </button>
           )}
@@ -300,9 +315,9 @@ export const VexScoreCanvas: React.FC<VexScoreCanvasProps> = ({
 
       {/* Contenedor del Lienzo de Partitura (Estilo Papel Musical Premium o Modo Oscuro) */}
       <div
-        className={`w-full overflow-x-auto p-2 sm:p-6 md:p-8 flex justify-center transition-colors duration-300 ${
+        className={`w-full overflow-x-auto p-4 sm:p-6 md:p-8 flex justify-center transition-all duration-300 ${
           paperMode
-            ? 'bg-[#fcfbf7] text-slate-900 shadow-inner'
+            ? 'paper-score-bg text-slate-900'
             : darkMode
             ? 'bg-slate-900 text-slate-100'
             : 'bg-white text-slate-900'

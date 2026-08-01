@@ -1,5 +1,6 @@
 import React from 'react';
 import type { RhythmFigure, ScoreConfig, SymbolsConfig } from '../../types/index.js';
+import { Clock, Sparkles, CheckCircle2, Circle } from 'lucide-react';
 
 interface RhythmSymbolsTabProps {
   config: ScoreConfig;
@@ -53,28 +54,29 @@ export const RhythmSymbolsTab: React.FC<RhythmSymbolsTabProps> = ({ config, onCh
   return (
     <div className="space-y-6">
       {/* Figuras rítmicas permitidas */}
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
-          1. Figuras Rítmicas Permitidas
+      <div className="bg-white/60 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all">
+        <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-1.5">
+          <Clock className="w-4 h-4 text-indigo-500" />
+          <span>1. Figuras Rítmicas Permitidas</span>
         </label>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3.5">
           El algoritmo construirá compases exactos combinando únicamente las figuras activas:
         </p>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5">
           {RHYTHM_ITEMS.map((item) => {
             const active = config.allowedRhythms.includes(item.id);
             return (
               <button
                 key={item.id}
                 onClick={() => handleToggleRhythm(item.id)}
-                className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all ${
+                className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all duration-200 ${
                   active
-                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/70 dark:border-indigo-400 dark:text-indigo-300 font-semibold shadow-sm'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'
+                    ? 'bg-gradient-to-r from-indigo-500/15 via-indigo-500/10 to-transparent border-indigo-500 text-indigo-700 dark:text-indigo-300 font-bold shadow-sm scale-[1.02]'
+                    : 'bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02]'
                 }`}
               >
-                <span className="text-lg w-6 text-center">{item.icon}</span>
+                <span className="text-xl w-7 text-center drop-shadow-xs">{item.icon}</span>
                 <span className="text-xs truncate">{item.label}</span>
               </button>
             );
@@ -83,40 +85,42 @@ export const RhythmSymbolsTab: React.FC<RhythmSymbolsTabProps> = ({ config, onCh
       </div>
 
       {/* Símbolos y articulaciones */}
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-700/60">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-3">
-          2. Símbolos Musicales &amp; Articulaciones
+      <div className="bg-white/60 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all">
+        <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-3">
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span>2. Símbolos Musicales &amp; Articulaciones</span>
         </label>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {SYMBOL_ITEMS.map((symbol) => {
             const active = config.symbols[symbol.id];
             return (
-              <label
+              <div
                 key={symbol.id}
                 onClick={() => handleToggleSymbol(symbol.id)}
-                className={`flex items-start justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${
                   active
-                    ? 'bg-indigo-50/70 border-indigo-300 dark:bg-indigo-950/40 dark:border-indigo-800'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                    ? 'bg-gradient-to-r from-indigo-500/15 via-indigo-500/10 to-transparent border-indigo-500/80 shadow-xs scale-[1.01]'
+                    : 'bg-white/80 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.01]'
                 }`}
               >
                 <div>
-                  <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                     {symbol.label}
                   </h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {symbol.description}
                   </p>
                 </div>
 
-                <input
-                  type="checkbox"
-                  checked={active}
-                  onChange={() => {}} // Manejado por onClick en label
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 mt-1"
-                />
-              </label>
+                <div className="ml-3 flex-shrink-0">
+                  {active ? (
+                    <CheckCircle2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600" />
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -124,3 +128,4 @@ export const RhythmSymbolsTab: React.FC<RhythmSymbolsTabProps> = ({ config, onCh
     </div>
   );
 };
+

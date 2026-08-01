@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ScoreConfig } from '../../types/index.js';
-import { Ban } from 'lucide-react';
+import { Ban, SlidersHorizontal } from 'lucide-react';
 
 interface RangeExclusionsTabProps {
   config: ScoreConfig;
@@ -26,14 +26,15 @@ export const RangeExclusionsTab: React.FC<RangeExclusionsTabProps> = ({ config, 
   return (
     <div className="space-y-6">
       {/* Selector de Rango / Tesitura */}
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-3">
-          1. Tesitura (Rango Permitido)
+      <div className="bg-white/60 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all">
+        <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-3">
+          <SlidersHorizontal className="w-4 h-4 text-indigo-500" />
+          <span>1. Tesitura (Rango Permitido)</span>
         </label>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
               Nota más grave (Mín)
             </label>
             <input
@@ -41,13 +42,13 @@ export const RangeExclusionsTab: React.FC<RangeExclusionsTabProps> = ({ config, 
               value={config.minPitch}
               onChange={(e) => onChange({ minPitch: e.target.value.trim() })}
               placeholder="C4"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono text-sm"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
             />
-            <span className="text-[10px] text-slate-400">Ejemplo: C3, G3, C4</span>
+            <span className="text-[10px] text-slate-400 font-medium mt-1 block">Ejemplo: C3, G3, C4</span>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
               Nota más aguda (Máx)
             </label>
             <input
@@ -55,31 +56,31 @@ export const RangeExclusionsTab: React.FC<RangeExclusionsTabProps> = ({ config, 
               value={config.maxPitch}
               onChange={(e) => onChange({ maxPitch: e.target.value.trim() })}
               placeholder="G5"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono text-sm"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
             />
-            <span className="text-[10px] text-slate-400">Ejemplo: E5, G5, C6</span>
+            <span className="text-[10px] text-slate-400 font-medium mt-1 block">Ejemplo: E5, G5, C6</span>
           </div>
         </div>
       </div>
 
       {/* Exclusión de Notas */}
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-700/60">
+      <div className="bg-white/60 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm transition-all">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-            <Ban className="w-4 h-4 text-red-500" />
-            2. Excluir Notas / Alteraciones
+          <label className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <Ban className="w-4 h-4 text-rose-500" />
+            <span>2. Excluir Notas / Alteraciones</span>
           </label>
           {config.excludedPitches.length > 0 && (
             <button
               onClick={() => onChange({ excludedPitches: [] })}
-              className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline transition-all"
             >
               Limpiar todas ({config.excludedPitches.length})
             </button>
           )}
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3.5">
           Haz clic en cualquier nota o alteración cromática que desees excluir de la melodía generada:
         </p>
 
@@ -90,10 +91,10 @@ export const RangeExclusionsTab: React.FC<RangeExclusionsTabProps> = ({ config, 
               <button
                 key={pc}
                 onClick={() => handleToggleExclude(pc)}
-                className={`py-2 rounded-xl border text-xs font-mono font-bold transition-all ${
+                className={`py-2 px-1.5 rounded-xl border text-xs font-mono font-extrabold transition-all duration-200 ${
                   isExcluded
-                    ? 'bg-red-50 border-red-500 text-red-700 dark:bg-red-950/70 dark:border-red-400 dark:text-red-300 shadow-sm'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                    ? 'bg-rose-500 text-white border-rose-600 shadow-md shadow-rose-500/25 scale-105'
+                    : 'bg-white/80 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02]'
                 }`}
               >
                 {isExcluded ? `🚫 ${pc}` : pc}
@@ -105,3 +106,4 @@ export const RangeExclusionsTab: React.FC<RangeExclusionsTabProps> = ({ config, 
     </div>
   );
 };
+

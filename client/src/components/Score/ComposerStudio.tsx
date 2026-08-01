@@ -436,56 +436,67 @@ export const ComposerStudio: React.FC<ComposerStudioProps> = ({
 
           {/* Panel para editar la Nota Seleccionada en la Partitura */}
           {selectedNote ? (
-            <div className="bg-amber-950/30 border border-amber-500/40 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-300">
-                  Nota: {selectedNote.pitch} ({selectedNote.duration})
-                </span>
+            <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/15 to-amber-600/20 border-2 border-amber-500/60 rounded-2xl p-3.5 shadow-lg shadow-amber-500/10 flex flex-wrap items-center justify-between gap-3 animate-pulse-once">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-bold font-mono flex items-center justify-center text-sm shadow">
+                  {selectedNote.pitch}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-amber-200">
+                    Nota Seleccionada en Pentagrama
+                  </div>
+                  <div className="text-[11px] text-amber-300/80">
+                    Figura: {selectedNote.duration} • Altura: {selectedNote.pitch}
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleShiftSemitone(1)}
-                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs font-bold text-amber-200 border border-amber-500/30 transition-all hover:scale-105 active:scale-95"
                   title="Subir 1 semitono (#)"
                 >
-                  +1 st
+                  +1 st (#)
                 </button>
                 <button
                   onClick={() => handleShiftSemitone(-1)}
-                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs font-bold text-amber-200 border border-amber-500/30 transition-all hover:scale-105 active:scale-95"
                   title="Bajar 1 semitono (b)"
                 >
-                  -1 st
+                  -1 st (b)
                 </button>
                 <button
                   onClick={() => handleShiftOctave(1)}
-                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
-                  title="Subir octava (8va)"
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs font-bold text-amber-200 border border-amber-500/30 transition-all hover:scale-105 active:scale-95"
+                  title="Subir octava (+8va)"
                 >
                   +8va
                 </button>
                 <button
                   onClick={() => handleShiftOctave(-1)}
-                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
-                  title="Bajar octava (8vb)"
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs font-bold text-amber-200 border border-amber-500/30 transition-all hover:scale-105 active:scale-95"
+                  title="Bajar octava (-8vb)"
                 >
                   -8vb
                 </button>
                 <button
                   onClick={() => onDeleteNote(selectedNote.id)}
-                  className="p-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-400 hover:text-red-200 transition-colors"
-                  title="Eliminar nota"
+                  className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-red-100 transition-colors"
+                  title="Eliminar nota del compás"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-800/40 border border-slate-700/60 text-xs text-slate-400">
-              <span>Haz clic en una nota de la partitura para seleccionarla o pulsa en el piano para añadir.</span>
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/80 text-xs text-slate-300">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                Haz clic en una nota del pentagrama para seleccionarla y transponerla, o pulsa en el piano para añadir.
+              </span>
               <button
                 onClick={handleAddRest}
-                className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold transition-colors flex items-center gap-1 flex-shrink-0"
+                className="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0"
               >
                 + Añadir Silencio
               </button>
